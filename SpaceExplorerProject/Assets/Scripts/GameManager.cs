@@ -1,67 +1,137 @@
+﻿using System.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement; // Add this line
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
+
+    [Header("Enemy Settings")]
     public GameObject enemyPrefab;
     public float minInstantiateValue;
     public float maxInstantiateValue;
     public float enemyDestroyTime = 10f;
+    private float spawnRate = 2f;
+    private float spawnRateMultiplier = 1f;
+    private float maxMultiplier = 3f;
+
+    [Header("Star Settings")]
+    public GameObject starPrefab;
+    public float starSpawnInterval = 7f;
 
     [Header("Particle Effects")]
     public GameObject explosion;
     public GameObject muzzleFlash;
 
-    [Header("Panels")]
-    public GameObject StartMenu;
+    [Header("UI Panels")]
     public GameObject pauseMenu;
+    public TextMeshProUGUI scoreText;
+
+    [Header("Audio")]
+    public AudioSource backgroundMusic;
+
+    private int score = 0;
 
     private void Awake()
     {
         instance = this;
     }
+
     private void Start()
     {
-        StartMenu.SetActive(true);
         pauseMenu.SetActive(false);
-        Time.timeScale = 0f; // Pause the game at the start
-        InvokeRepeating("InstantiateEnemy", 1f, 2f);
+        scoreText.text = "Score: 0";
+        StartCoroutine(SpawnEnemies());
+        StartCoroutine(IncreaseSpawnRate());
+        StartCoroutine(SpawnStars());
+
+        // Play background music if assigned
+        if (backgroundMusic != null && !backgroundMusic.isPlaying)
+        {
+            backgroundMusic.loop = true;
+            backgroundMusic.Play();
+        }
     }
+
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && !StartMenu.activeSelf)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             PauseGame(true);
-
         }
     }
+
+    IEnumerator SpawnStars()
+    {
+        while (true)
+        {
+            Vector3 spawnPos = new Vector3(Random.Range(minInstantiateValue, maxInstantiateValue), 6f);
+            float randomAngle = Random.Range(-20f, 20f);
+            Quaternion rotation = Quaternion.Euler(0f, 0f, 180f + randomAngle);
+            GameObject star = Instantiate(starPrefab, spawnPos, rotation);
+            Destroy(star, enemyDestroyTime); // Dùng enemyDestroyTime hoặc tạo biến riêng cho star
+            yield return new WaitForSeconds(starSpawnInterval);
+        }
+    }
+
+    IEnumerator SpawnEnemies()
+    {
+        while (true)
+        {
+            InstantiateEnemy();
+            yield return new WaitForSeconds(spawnRate / spawnRateMultiplier);
+        }
+    }
+
+    IEnumerator IncreaseSpawnRate()
+    {
+        while (spawnRateMultiplier < maxMultiplier)
+        {
+            yield return new WaitForSeconds(10f);
+            spawnRateMultiplier = Mathf.Min(spawnRateMultiplier + 0.2f, maxMultiplier);
+        }
+    }
+
     void InstantiateEnemy()
     {
-        Vector3 enemypos = new Vector3(Random.Range(minInstantiateValue, maxInstantiateValue), 6f);
-        GameObject enemy = Instantiate(enemyPrefab, enemypos, Quaternion.Euler(0f, 0f, 180f));
+        Vector3 spawnPos = new Vector3(Random.Range(minInstantiateValue, maxInstantiateValue), 6f);
+        float randomAngle = Random.Range(-20f, 20f);
+        Quaternion rotation = Quaternion.Euler(0f, 0f, 180f + randomAngle);
+        GameObject enemy = Instantiate(enemyPrefab, spawnPos, rotation);
         Destroy(enemy, enemyDestroyTime);
     }
-    public void StartGameButton()
+
+    public void AddScore(int value)
     {
-        StartMenu.SetActive(false);
-        Time.timeScale = 1f;
-    }
-    public void PauseGame(bool isPaused)
-    {
-        if (isPaused)
-        {
-            pauseMenu.SetActive(true);
-            Time.timeScale = 0f;
-        }
-        else
-        {
-            pauseMenu.SetActive(false);
-            Time.timeScale = 1f;
-        }
+        score += value;
+        UpdateScoreText();
     }
 
-    public void QuitGame()
+    void UpdateScoreText()
     {
-        Application.Quit();
+        scoreText.text = "Score: " + score;
+    }
+
+    public void PauseGame(bool isPaused)
+    {
+        pauseMenu.SetActive(isPaused);
+        Time.timeScale = isPaused ? 0f : 1f;
+    }
+
+    public void GameOver()
+    {
+        Debug.Log("Game Over!");
+        PlayerPrefs.SetInt("LastScore", score); // Lưu điểm hiện tại
+        PlayerPrefs.Save();
+        Time.timeScale = 1f;
+
+        // Stop background music before changing scene
+        if (backgroundMusic != null && backgroundMusic.isPlaying)
+        {
+            backgroundMusic.Stop();
+        }
+
+        SceneManager.LoadScene(2); // EndGame scene
     }
 }

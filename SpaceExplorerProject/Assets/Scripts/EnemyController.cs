@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿    using UnityEngine;
 
-public class EnemyController : MonoBehaviour
-{
-    public float speed;
-    private void Update()
+    public class EnemyController : MonoBehaviour
     {
-        transform.Translate(Vector3.up * speed * Time.deltaTime);
+        public float speed;
+        private void Update()
+        {
+            transform.Translate(Vector3.up * speed * Time.deltaTime);
+        }
     }
-}
