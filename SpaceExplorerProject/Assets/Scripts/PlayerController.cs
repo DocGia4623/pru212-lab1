@@ -6,19 +6,22 @@ public class PlayerController : MonoBehaviour
 {
     public float speed = 10f;
 
-    [Header("Laser")]
+    // Laser
     public GameObject laserPrefab;
     public Transform laserSpawnPosition;
     public float laserDuration = 0.5f;
     public LayerMask enemyLayer = -1;
     public Transform muzzleSpawnPosition;
-    public AudioClip shootSfx; // Thêm AudioClip cho hiệu ứng bắn
-    private AudioSource audioSource; // Thêm AudioSource
+    public AudioClip shootSfx;
+    private AudioSource audioSource;
 
-    [Header("Health")]
+    // Health
     public int maxLives = 3;
-    public GameObject heartIconPrefab; // Icon trái tim
-    public Transform healthIconsPanel; // Panel chứa icon
+    public GameObject heartIconPrefab;
+    public Transform healthIconsPanel;
+
+    // Smoke trail
+    public ParticleSystem smokeTrail;
 
     private int currentLives;
     private bool isDead = false;
@@ -29,6 +32,8 @@ public class PlayerController : MonoBehaviour
     {
         currentLives = maxLives;
         CreateHealthIcons();
+
+        // Ensure there is an AudioSource component
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
@@ -51,6 +56,19 @@ public class PlayerController : MonoBehaviour
         float yPos = Input.GetAxis("Vertical");
         Vector3 movement = new Vector3(xPos, yPos, 0) * speed * Time.deltaTime;
         transform.Translate(movement);
+
+        // Play or stop smoke trail based on movement
+        if (smokeTrail != null)
+        {
+            if (movement != Vector3.zero && !smokeTrail.isPlaying)
+            {
+                smokeTrail.Play();
+            }
+            else if (movement == Vector3.zero && smokeTrail.isPlaying)
+            {
+                smokeTrail.Stop();
+            }
+        }
     }
 
     void PlayerShoot()
@@ -101,7 +119,7 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy") && !isDead && !isInvincible)
         {
-            // Only subtract points if score will not go below zero
+            // Reduce score using reflection
             if (GameManager.instance != null)
             {
                 int currentScore = typeof(GameManager)
@@ -111,13 +129,15 @@ public class PlayerController : MonoBehaviour
                 int newScore = currentScore - 5;
                 GameManager.instance.AddScore(newScore < 0 ? -currentScore : -5);
             }
+
             DieAndRespawn();
         }
+
         if (collision.gameObject.CompareTag("Star"))
         {
             GameManager.instance.AddScore(10);
 
-            // 10% chance to gain 1 life (if not at max)
+            // 25% chance to gain a heart
             if (Random.value < 0.25f && currentLives < maxLives)
             {
                 currentLives++;
@@ -137,7 +157,6 @@ public class PlayerController : MonoBehaviour
         GameObject explosion = Instantiate(GameManager.instance.explosion, transform.position, transform.rotation);
         Destroy(explosion, 2f);
         gameObject.SetActive(false);
-        Debug.Log("Player Destroyed by Enemy");
 
         if (currentLives > 0)
         {
@@ -161,21 +180,25 @@ public class PlayerController : MonoBehaviour
     System.Collections.IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;
-
-        // Flashing effect while invincible
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         float elapsed = 0f;
         float invincibleDuration = 1f;
         float flashInterval = 0.15f;
+
         while (elapsed < invincibleDuration)
         {
             if (sr != null)
+            {
                 sr.enabled = !sr.enabled;
+            }
             yield return new WaitForSeconds(flashInterval);
             elapsed += flashInterval;
         }
+
         if (sr != null)
+        {
             sr.enabled = true;
+        }
 
         isInvincible = false;
     }

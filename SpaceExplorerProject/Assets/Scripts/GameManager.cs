@@ -9,6 +9,9 @@ public class GameManager : MonoBehaviour
 
     [Header("Enemy Settings")]
     public GameObject enemyPrefab;
+    public GameObject enemyPrefab2; // Add second enemy model
+    public GameObject enemyPrefab3; // Add third enemy model
+
     public float minInstantiateValue;
     public float maxInstantiateValue;
     public float enemyDestroyTime = 10f;
@@ -98,7 +101,16 @@ public class GameManager : MonoBehaviour
         Vector3 spawnPos = new Vector3(Random.Range(minInstantiateValue, maxInstantiateValue), 6f);
         float randomAngle = Random.Range(-20f, 20f);
         Quaternion rotation = Quaternion.Euler(0f, 0f, 180f + randomAngle);
-        GameObject enemy = Instantiate(enemyPrefab, spawnPos, rotation);
+
+        // Randomly select one of the three enemy prefabs
+        int enemyType = Random.Range(0, 3);
+        GameObject prefabToSpawn = enemyPrefab;
+        if (enemyType == 1 && enemyPrefab2 != null)
+            prefabToSpawn = enemyPrefab2;
+        else if (enemyType == 2 && enemyPrefab3 != null)
+            prefabToSpawn = enemyPrefab3;
+
+        GameObject enemy = Instantiate(prefabToSpawn, spawnPos, rotation);
         Destroy(enemy, enemyDestroyTime);
     }
 
