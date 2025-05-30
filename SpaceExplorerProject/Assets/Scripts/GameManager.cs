@@ -134,4 +134,14 @@ public class GameManager : MonoBehaviour
 
         SceneManager.LoadScene(2); // EndGame scene
     }
+
+    public void QuitGame()
+    {
+        // Stop background music if playing
+        if (backgroundMusic != null && backgroundMusic.isPlaying)
+        {
+            backgroundMusic.Stop();
+        }
+        Application.Quit();
+    }
 }

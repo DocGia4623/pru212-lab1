@@ -118,7 +118,7 @@ public class PlayerController : MonoBehaviour
             GameManager.instance.AddScore(10);
 
             // 10% chance to gain 1 life (if not at max)
-            if (Random.value < 0.7f && currentLives < maxLives)
+            if (Random.value < 0.25f && currentLives < maxLives)
             {
                 currentLives++;
                 UpdateHealthIcons();
