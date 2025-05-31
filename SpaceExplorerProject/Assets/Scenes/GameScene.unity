@@ -751,7 +751,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b2fb33850bd53e4dbdd5888c048ce96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 2019785428923420891, guid: 6d63d8db85a906d49922f47f172c4fa3, type: 3}
+  enemyPrefab: {fileID: 2019785428923420891, guid: 3296a31ea659a70489d2ee02d2bcf91b, type: 3}
   enemyPrefab2: {fileID: 2019785428923420891, guid: 6323b42d7efcb1f4092e0303f79b5619, type: 3}
   enemyPrefab3: {fileID: 2019785428923420891, guid: f8f42afea0432ba4ebac7cd5ada515b8, type: 3}
   minInstantiateValue: -6
