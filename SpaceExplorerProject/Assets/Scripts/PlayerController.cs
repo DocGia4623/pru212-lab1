@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
     private bool isInvincible = false;
     private List<GameObject> heartIcons = new List<GameObject>();
 
+    private Camera mainCam;
+
     private void Start()
     {
         currentLives = maxLives;
@@ -39,6 +41,8 @@ public class PlayerController : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
+
+        mainCam = Camera.main;
     }
 
     private void Update()
@@ -53,9 +57,21 @@ public class PlayerController : MonoBehaviour
     void PlayerMovement()
     {
         float xPos = Input.GetAxis("Horizontal");
-        float yPos = Input.GetAxis("Vertical");
+        float yPos = Input.GetAxis("Vertical"); 
         Vector3 movement = new Vector3(xPos, yPos, 0) * speed * Time.deltaTime;
         transform.Translate(movement);
+
+        // Clamp player position to camera bounds
+        if (mainCam != null)
+        {
+            Vector3 pos = transform.position;
+            Vector3 min = mainCam.ViewportToWorldPoint(new Vector3(0, 0, mainCam.nearClipPlane));
+            Vector3 max = mainCam.ViewportToWorldPoint(new Vector3(1, 1, mainCam.nearClipPlane));
+
+            pos.x = Mathf.Clamp(pos.x, min.x, max.x);
+            pos.y = Mathf.Clamp(pos.y, min.y, max.y);
+            transform.position = pos;
+        }
 
         // Play or stop smoke trail based on movement
         if (smokeTrail != null)

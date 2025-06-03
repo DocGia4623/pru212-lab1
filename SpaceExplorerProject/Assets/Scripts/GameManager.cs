@@ -98,20 +98,28 @@ public class GameManager : MonoBehaviour
 
     void InstantiateEnemy()
     {
+        // Spawn position at the top with random X
         Vector3 spawnPos = new Vector3(Random.Range(minInstantiateValue, maxInstantiateValue), 6f);
+
+        // Random angle for diagonal movement
         float randomAngle = Random.Range(-20f, 20f);
         Quaternion rotation = Quaternion.Euler(0f, 0f, 180f + randomAngle);
 
-        // Randomly select one of the three enemy prefabs
-        int enemyType = Random.Range(0, 3);
-        GameObject prefabToSpawn = enemyPrefab;
-        if (enemyType == 1 && enemyPrefab2 != null)
-            prefabToSpawn = enemyPrefab2;
-        else if (enemyType == 2 && enemyPrefab3 != null)
-            prefabToSpawn = enemyPrefab3;
+        // Select a random enemy prefab
+        GameObject[] enemyPrefabs = { enemyPrefab, enemyPrefab2, enemyPrefab3 };
+        int enemyType = Random.Range(0, enemyPrefabs.Length);
+        GameObject prefabToSpawn = enemyPrefabs[enemyType] != null ? enemyPrefabs[enemyType] : enemyPrefab;
 
+        // Instantiate and destroy after a set time
         GameObject enemy = Instantiate(prefabToSpawn, spawnPos, rotation);
         Destroy(enemy, enemyDestroyTime);
+
+        // Pass the random angle to the enemy for diagonal movement (if needed)
+        var controller = enemy.GetComponent<EnemyController>();
+        if (controller != null)
+        {
+            controller.SetMoveAngle(randomAngle);
+        }
     }
 
     public void AddScore(int value)
